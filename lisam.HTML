@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LISAM - Liberian Students Association in Morocco</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.19/index.min.css">
+    <style>
+        :root {
+            --green: #006B3C; --green-dark: #004d2b; --red: #C1272D; --red-dark: #8b1d20; --gold: #ffd700;
+            --bg: #f8fafc; --card-bg: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 12px; --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        #loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #0a192f 0%, #112240 40%, #1a3a2a 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        #loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-logo { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1.5rem; box-shadow: 0 0 30px rgba(0,107,60,0.5); animation: logoPulse 2s ease-in-out infinite; overflow: hidden; background: white; display: flex; align-items: center; justify-content: center; }
+        .loader-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+        @keyframes logoPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0,107,60,0.5); } 50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(0,107,60,0.7); } }
+        .loader-text { font-size: 1.4rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.3rem; }
+        .loader-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 2rem; letter-spacing: 1px; }
+        .loader-powered { font-size: 0.75rem; color: var(--gold); letter-spacing: 3px; font-weight: 600; text-transform: uppercase; margin-top: 2rem; }
+        .loader-bar { width: 150px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .loader-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); width: 0%; animation: loadBar 1.5s ease forwards; }
+        @keyframes loadBar { to { width: 100%; } }
+        
+        header { background: linear-gradient(135deg, var(--green) 0%, var(--red) 100%); color: white; padding: 1rem 0; position: fixed; width: 100%; top: 0; z-index: 1000; box-shadow: 0 4px 30px rgba(0,0,0,0.25); backdrop-filter: blur(15px); }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .logo img { width: 45px; height: 45px; margin-right: 15px; border-radius: 50%; border: 2px solid white; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: transform 0.3s ease; }
+        .logo:hover img { transform: rotate(10deg) scale(1.05); }
+        .nav-links { display: flex; list-style: none; gap: 0.8rem; flex-wrap: wrap; justify-content: center; align-items: center; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; font-size: 0.9rem; padding: 4px 8px; border-radius: 6px; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 50%; width: 0; height: 2px; background: var(--gold); transition: all 0.3s ease; transform: translateX(-50%); }
+        .nav-links a:hover { color: var(--gold); background: rgba(255,255,255,0.1); }
+        .nav-links a:hover::after { width: 80%; }
+        .mobile-menu { display: none; flex-direction: column; cursor: pointer; padding: 5px; }
+        .mobile-menu span { width: 25px; height: 3px; background: white; margin: 3px 0; transition: var(--transition); border-radius: 2px; }
+        .nav-btn { padding: 8px 16px; border-radius: 25px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+        .admin-badge { background: var(--gold); color: var(--green); padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; display: none; margin-left: 5px; }
+        .admin-badge.show { display: inline-block; }
+        .user-badge { display: none; align-items: center; gap: 5px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,0.2); }
+        .user-badge:hover { background: rgba(255,255,255,0.3); }
+        .user-badge.show { display: flex; }
+
+        .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--green)); z-index: 1001; width: 0%; transition: width 0.05s linear; }
+
+        .hero { background: linear-gradient(rgba(0, 107, 60, 0.3), rgba(193, 39, 45, 0.3)); height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; color: white; margin-top: 70px; position: relative; overflow: hidden; }
+        .hero-scroll-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+        .hero-scroll-track { display: flex; width: 400%; height: 100%; transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1); }
+        .hero-scroll-img { width: 25%; height: 100%; object-fit: cover; flex-shrink: 0; background: #1e293b; }
+        .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 107, 60, 0.7); color: white; border: 2px solid white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; backdrop-filter: blur(5px); }
+        .scroll-btn:hover { background: var(--green); transform: translateY(-50%) scale(1.1); }
+        .scroll-btn-left { left: 20px; } .scroll-btn-right { right: 20px; }
+        .hero-content { position: relative; z-index: 1; padding: 0 20px; max-width: 800px; }
+        .hero-content h1 { font-size: clamp(2rem, 6vw, 4.5rem); margin-bottom: 1rem; text-shadow: 2px 2px 8px rgba(0,0,0,0.6); min-height: 1.2em; font-weight: 800; letter-spacing: -1px; }
+        .hero-tagline { font-size: clamp(1rem, 2.5vw, 1.4rem); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; font-weight: 500; opacity: 0.95; }
+        .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 12px 28px; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; gap: 8px; position: relative; overflow: hidden; }
+        .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.6s ease, height 0.6s ease; }
+        .btn:active::before { width: 300px; height: 300px; }
+        .btn-primary { background: var(--gold); color: var(--green-dark); box-shadow: 0 4px 14px rgba(255, 215, 0, 0.4); }
+        .btn-secondary { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.8); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .btn-primary:hover { background: #ffc107; box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5); }
+
+        .section { padding: 70px 0; }
+        .section-title { text-align: center; font-size: clamp(1.6rem, 3.5vw, 2.3rem); margin-bottom: 0.8rem; color: var(--green); position: relative; font-weight: 800; letter-spacing: -0.5px; }
+        .section-title::after { content: ''; display: block; width: 60px; height: 4px; background: linear-gradient(90deg, var(--green), var(--red)); margin: 10px auto; border-radius: 4px; }
+        .section-subtitle { text-align: center; color: var(--text-muted); max-width: 650px; margin: 0 auto 1.8rem; font-size: 1rem; }
+        .liberia-flag-icon { width: 60px; height: 35px; border-radius: 4px; margin-bottom: 1rem; box-shadow: var(--shadow); }
+
+        .particles-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle { position: absolute; background: rgba(255,255,255,0.1); border-radius: 50%; animation: floatParticle 20s infinite linear; }
+        @keyframes floatParticle { 0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.3; } 90% { opacity: 0.3; } 100% { transform: translateY(-100vh) translateX(100px) rotate(360deg); opacity: 0; } }
+
+        /* Glassmorphism Cards */
+        .glass-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.5); }
+
+        .leadership-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-top: 2rem; }
+        .leader-card { background: var(--card-bg); border-radius: var(--radius); padding: 1.2rem; text-align: center; box-shadow: var(--shadow); transition: var(--transition); position: relative; border: 1px solid var(--border); }
+        .leader-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--green), var(--red)); border-radius: var(--radius) var(--radius) 0 0; transform: scaleX(0); transition: transform 0.3s ease; }
+        .leader-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--green); }
+        .leader-card:hover::before { transform: scaleX(1); }
+        .leader-photo-container { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 0.8rem; background: linear-gradient(135deg, var(--green), var(--red)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 800; overflow: hidden; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .leader-photo-container img { width: 100%; height: 100%; object-fit: cover; }
+        .leader-name { font-size: 1rem; font-weight: 700; color: var(--green); margin-bottom: 0.2rem; }
+        .leader-position { color: var(--text-muted); font-size: 0.8rem; font-weight: 500; margin-bottom: 5px; }
+        .leader-bio-btn { font-size: 0.8rem; color: var(--green); cursor: pointer; font-weight: 600; background: none; border: none; transition: var(--transition); padding: 3px 6px; border-radius: 4px; }
+        .leader-bio-btn:hover { color: var(--red); background: rgba(193, 39, 45, 0.1); }
+        .leader-details { display: none; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 2px solid var(--border); text-align: left; }
+        .leader-details.show { display: block; animation: fadeInUp 0.4s ease-out; }
+        .leader-details p { color: #475569; font-size: 0.85rem; line-height: 1.6; }
+        .admin-edit-leader-btn { position: absolute; top: 8px; right: 8px; background: var(--gold); color: var(--green-dark); border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; z-index: 10; box-shadow: var(--shadow); transition: var(--transition); }
+        .admin-mode .admin-edit-leader-btn { display: flex; }
+        .admin-edit-leader-btn:hover { transform: scale(1.15); }
+
+        /* Compact News Cards */
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .news-card { background: var(--card-bg); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); transition: var(--transition); border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; }
+        .news-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--green); }
+        .news-card-image { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, var(--green), var(--red)); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; overflow: hidden; }
+        .news-card-image img { width: 100%; height: 100%; object-fit: cover; }
+        .news-card-image .flyer-icon { font-size: 2.5rem; }
+        .news-card-content { padding: 0.8rem 1rem; flex: 1; }
+        .news-card-badge { display: inline-block; padding: 2px 6px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .news-card-badge.award { background: #fef3c7; color: #92400e; }
+        .news-card-badge.flyer { background: #dbeafe; color: #1e40af; }
+        .news-card-badge.announcement { background: #d1fae5; color: #065f46; }
+        .news-card-title { font-size: 0.9rem; font-weight: 700; color: var(--green); margin-bottom: 0.3rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-card-date { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+        .news-card-desc { font-size: 0.8rem; color: #475569; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-admin-controls { display: none; position: absolute; top: 6px; right: 6px; gap: 5px; z-index: 5; }
+        .admin-mode .news-admin-controls { display: flex; }
+        .news-admin-btn { background: rgba(255,255,255,0.95); color: var(--green-dark); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; box-shadow: var(--shadow); transition: var(--transition); }
+        .news-admin-btn:hover { background: var(--gold); transform: scale(1.1); }
+        .news-placeholder-add { border: 2px dashed var(--border); background: transparent; display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; border-radius: 10px; cursor: pointer; transition: var(--transition); }
+        .news-placeholder-add:hover { border-color: var(--green); background: rgba(0,107,60,0.05); }
+        .news-placeholder-add .icon { font-size: 2rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+        .news-placeholder-add .text { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+        .admin-mode .news-placeholder-add { display: flex; }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .gallery-item { position: relative; border-radius: var(--radius); overflow: hidden; height: 220px; background: linear-gradient(135deg, #334155, #0f172a); cursor: pointer; transition: var(--transition); box-shadow: var(--shadow); }
+        .gallery-item:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-lg); }
+        .gallery-item.has-image { background-size: cover; background-position: center; }
+        .gallery-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%); z-index: 1; }
+        .gallery-item .upload-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; color: white; z-index: 2; padding: 1rem; text-align: center; transition: var(--transition); }
+        .gallery-item:hover .upload-prompt { background: rgba(0,0,0,0.3); }
+        .gallery-item.has-image .upload-prompt { display: none; }
+        .gallery-item .overlay-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 107, 60, 0.9); color: white; padding: 10px; text-align: center; font-weight: 700; transform: translateY(100%); transition: transform 0.3s ease; z-index: 3; backdrop-filter: blur(5px); }
+        .gallery-item:hover .overlay-label { transform: translateY(0); }
+        .admin-add-indicator { position: absolute; top: 8px; right: 8px; background: var(--gold); color: var(--green-dark); width: 26px; height: 26px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; z-index: 5; box-shadow: var(--shadow); }
+        .admin-mode .admin-add-indicator { display: flex; }
+
+        .gallery-modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 1rem; }
+        .gallery-modal.show { display: flex; animation: fadeIn 0.2s ease; }
+        .gallery-modal-content { position: relative; background: white; border-radius: 14px; padding: 1.2rem; width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); }
+        .close-btn { position: absolute; top: 10px; right: 10px; font-size: 1.3rem; cursor: pointer; color: #64748b; z-index: 3; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: var(--transition); background: #f1f5f9; }
+        .close-btn:hover { background: #e2e8f0; color: var(--red); transform: rotate(90deg); }
+        .gallery-modal-title { text-align: center; color: var(--green); margin-bottom: 1rem; font-weight: 800; }
+        .admin-upload-controls { display: none; gap: 0.6rem; justify-content: center; margin-bottom: 0.8rem; padding: 0.6rem; background: #fffbeb; border-radius: var(--radius); border: 2px dashed var(--gold); }
+        .admin-mode .admin-upload-controls { display: flex; }
+        .admin-upload-btn { padding: 6px 14px; background: var(--green); color: white; border-radius: 50px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: var(--transition); border: none; font-size: 0.8rem; }
+        .admin-upload-btn:hover { background: var(--green-dark); transform: translateY(-2px); }
+        .admin-upload-btn input { display: none; }
+        .admin-upload-btn.video-btn { background: var(--red); }
+        .admin-upload-btn.video-btn:hover { background: var(--red-dark); }
+        .gallery-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.6rem; }
+        .gallery-media-placeholder { position: relative; background: #f1f5f9; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; transition: var(--transition); box-shadow: var(--shadow); }
+        .gallery-media-placeholder:hover { transform: scale(1.03); box-shadow: var(--shadow); }
+        .gallery-media-placeholder img, .gallery-media-placeholder video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .remove-media-btn { display: none; position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.9); color: white; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 8px; align-items: center; justify-content: center; z-index: 5; transition: var(--transition); }
+        .admin-mode .remove-media-btn { display: flex; }
+        .remove-media-btn:hover { background: #b91c1c; transform: scale(1.1); }
+        .gallery-media-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.75); color: white; font-size: 0.6rem; padding: 3px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(4px); }
+
+        .full-view-modal { display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .full-view-modal.show { display: flex; animation: fadeIn 0.2s ease; }
+        .full-view-content { max-width: 95%; max-height: 95vh; position: relative; display: flex; align-items: center; justify-content: center; }
+        .full-view-content img, .full-view-content video { max-width: 95vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); object-fit: contain; }
+        .full-view-close { position: absolute; top: -40px; right: 0; color: white; font-size: 2rem; cursor: pointer; background: rgba(255,255,255,0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+        .full-view-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+
+        .updates-container { background: var(--card-bg); border-radius: var(--radius); padding: 1.2rem; box-shadow: var(--shadow); min-height: 150px; border: 1px solid var(--border); }
+        .update-item { border-bottom: 1px solid var(--border); padding: 1rem 0; position: relative; transition: var(--transition); }
+        .update-item:hover { background: #f8fafc; border-radius: 8px; padding-left: 8px; padding-right: 8px; margin-left: -8px; margin-right: -8px; }
+        .update-item:last-child { border-bottom: none; }
+        .update-date { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.3rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .update-title { font-weight: 700; color: var(--green); margin-bottom: 0.4rem; font-size: 0.95rem; }
+        .update-content { color: #334155; line-height: 1.6; margin-bottom: 0.6rem; font-size: 0.85rem; }
+        .update-pdf-link { display: inline-flex; align-items: center; gap: 5px; color: var(--red); text-decoration: none; font-weight: 600; font-size: 0.75rem; border: 1px solid var(--red); padding: 4px 8px; border-radius: 6px; transition: all 0.3s; cursor: pointer; }
+        .update-pdf-link:hover { background: var(--red); color: white; transform: translateY(-1px); }
+        .update-admin-controls { display: none; position: absolute; top: 1rem; right: 0; gap: 5px; background: white; padding: 3px; border-radius: 8px; box-shadow: var(--shadow); }
+        .admin-mode .update-admin-controls { display: flex; }
+        .update-admin-btn { background: #f1f5f9; border: none; cursor: pointer; font-size: 0.85rem; transition: var(--transition); padding: 4px; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .update-admin-btn:hover { background: #e2e8f0; transform: scale(1.1); }
+        .admin-edit-btn { display: none; background: var(--green); color: white; border: none; padding: 7px 14px; border-radius: 50px; font-weight: 600; cursor: pointer; margin-top: 0.6rem; transition: var(--transition); box-shadow: var(--shadow); font-size: 0.8rem; }
+        .admin-mode .admin-edit-btn { display: inline-flex; align-items: center; gap: 5px; }
+        .admin-edit-btn:hover { background: var(--green-dark); transform: translateY(-2px); }
+        .remove-pdf-check { display: none; align-items: center; gap: 5px; margin-top: 0.4rem; font-size: 0.8rem; color: var(--red); }
+        .remove-pdf-check.show { display: flex; }
+
+        /* Compact Presidents */
+        .presidents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin-top: 1.5rem; }
+        .president-card { background: var(--card-bg); border-radius: 10px; overflow: visible; box-shadow: var(--shadow); transition: var(--transition); border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .president-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--green); }
+        .president-photo { width: 100%; aspect-ratio: 3/2; background: linear-gradient(135deg, #1e293b, #334155); display: flex; align-items: flex-start; justify-content: center; color: white; font-size: 2rem; overflow: visible; position: relative; border-radius: 10px 10px 0 0; }
+        .president-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: var(--transition); }
+        .president-card:hover .president-photo img { transform: scale(1.03); }
+        .president-info { padding: 0.8rem 1rem; flex: 1; }
+        .president-name { font-size: 0.9rem; font-weight: 700; color: var(--green); margin-bottom: 0.2rem; }
+        .president-university { color: var(--red); font-size: 0.75rem; margin-bottom: 0.5rem; font-weight: 600; }
+        .president-tenure { color: var(--text-muted); font-size: 0.75rem; padding: 2px 8px; background: #f1f5f9; border-radius: 12px; display: inline-block; font-weight: 600; border: 1px solid var(--border); }
+        .president-admin-controls { display: none; position: absolute; top: -6px; right: -6px; gap: 4px; z-index: 5; }
+        .admin-mode .president-admin-controls { display: flex; }
+        .president-admin-btn { background: var(--gold); color: var(--green-dark); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800; box-shadow: var(--shadow); transition: var(--transition); }
+        .president-admin-btn.delete-btn { background: var(--red); color: white; }
+        .president-admin-btn:hover { transform: scale(1.15); }
+        .president-placeholder-add { border: 2px dashed var(--border); background: transparent; display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; border-radius: 10px; cursor: pointer; transition: var(--transition); }
+        .president-placeholder-add:hover { border-color: var(--green); background: rgba(0,107,60,0.05); }
+        .president-placeholder-add .icon { font-size: 2rem; color: var(--text-muted); margin-bottom: 0.2rem; }
+        .president-placeholder-add .text { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+        .admin-mode .president-placeholder-add { display: flex; }
+
+        .contact-section { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 50px 0; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.2rem; }
+        .contact-info-card { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); transition: var(--transition); }
+        .contact-info-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+        .contact-info-item { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+        .contact-info-item:last-child { margin-bottom: 0; }
+        .contact-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,107,60,0.3); transition: transform 0.3s ease; }
+        .contact-info-card:hover .contact-icon { transform: scale(1.1) rotate(5deg); }
+        .contact-text h3 { font-size: 0.85rem; margin-bottom: 2px; color: var(--gold); font-weight: 600; }
+        .contact-text p { color: #94a3b8; font-size: 0.8rem; }
+        .contact-form-card { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        .contact-form-card h3 { font-size: 1rem; margin-bottom: 0.8rem; color: var(--gold); font-weight: 700; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+        .contact-input { width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.85rem; transition: var(--transition); }
+        .contact-input:focus { outline: none; border-color: var(--gold); background: rgba(255,255,255,0.15); }
+        .contact-input::placeholder { color: #64748b; }
+        .contact-textarea { width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 0.85rem; min-height: 70px; resize: vertical; margin-bottom: 0.6rem; transition: var(--transition); }
+        .contact-textarea:focus { outline: none; border-color: var(--gold); background: rgba(255,255,255,0.15); }
+        .contact-textarea::placeholder { color: #64748b; }
+        .submit-btn { width: 100%; padding: 10px; background: var(--gold); color: var(--green-dark); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: var(--transition); font-size: 0.9rem; }
+        .submit-btn:hover { background: #ffc107; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3); }
+        @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
+
+        /* Compact Membership Form */
+        .membership-form { background: var(--card-bg); border-radius: var(--radius); padding: 1.2rem; box-shadow: var(--shadow); max-width: 520px; margin: 0 auto; border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .membership-form::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); }
+        .form-group { margin-bottom: 0.6rem; }
+        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 600; color: var(--green); font-size: 0.8rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; font-size: 0.85rem; background: white; transition: var(--transition); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,107,60,0.1); }
+        .form-group select { cursor: pointer; appearance: none; background-image: url("image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 0.8rem; }
+        .form-row-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+
+        .amci-section { padding: 35px 0; background: #f1f5f9; }
+        .amci-container { max-width: 850px; margin: 0 auto; }
+        .amci-iframe-wrapper { background: white; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); position: relative; border: 1px solid var(--border); }
+        .amci-iframe-wrapper iframe { width: 100%; height: 320px; border: none; }
+
+        footer { background: #0f172a; color: #94a3b8; text-align: center; padding: 1.8rem 0; border-top: 1px solid #1e293b; }
+        footer p { margin-bottom: 0.8rem; font-size: 0.85rem; }
+        .social-links { margin-top: 0.8rem; display: flex; justify-content: center; gap: 0.8rem; }
+        .social-links a { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: var(--transition); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .social-links a:hover { transform: translateY(-4px) rotate(5deg); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .social-links a.facebook:hover { background: #1877F2; border-color: #1877F2; }
+        .social-links a.whatsapp:hover { background: #25D366; border-color: #25D366; }
+        .social-links a.instagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-color: transparent; }
+        .social-links a.email:hover { background: #EA4335; border-color: #EA4335; }
+        .social-links svg { width: 20px; height: 20px; fill: white; }
+
+        .auth-modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 1rem; }
+        .auth-modal.show { display: flex; animation: fadeIn 0.3s ease; }
+        .auth-box { background: white; border-radius: 18px; width: 100%; max-width: 380px; overflow: hidden; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .auth-header { background: linear-gradient(135deg, var(--green), var(--red)); color: white; padding: 1.2rem 1.5rem 1.5rem; text-align: center; position: relative; }
+        .auth-header h2 { font-size: 1.3rem; margin-bottom: 0.2rem; font-weight: 800; }
+        .auth-header p { opacity: 0.9; font-size: 0.85rem; }
+        .auth-close { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; width: 28px; height: 28px; border-radius: 50%; color: white; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+        .auth-close:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+        .auth-body { padding: 1.2rem; }
+        .auth-tabs { display: flex; margin-bottom: 1rem; border-bottom: 2px solid #f1f5f9; }
+        .auth-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-weight: 600; color: #64748b; transition: all 0.3s; border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 0.85rem; }
+        .auth-tab:hover { color: var(--green); }
+        .auth-tab.active { color: var(--green); border-bottom-color: var(--green); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; animation: fadeIn 0.3s ease; }
+        .password-wrapper { margin-bottom: 0.6rem; position: relative; }
+        .password-wrapper input { width: 100%; padding: 8px 38px 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; transition: all 0.3s; }
+        .password-wrapper input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,107,60,0.1); }
+        .password-wrapper .toggle-pass { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.9rem; user-select: none; opacity: 0.5; transition: var(--transition); padding: 5px; }
+        .password-wrapper .toggle-pass:hover { opacity: 1; }
+        .auth-input-group { margin-bottom: 0.6rem; position: relative; }
+        .auth-input-group input { width: 100%; padding: 8px 10px 8px 32px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; transition: all 0.3s; }
+        .auth-input-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,107,60,0.1); }
+        .auth-input-group .input-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; opacity: 0.5; }
+        .auth-submit { width: 100%; padding: 10px; background: linear-gradient(135deg, var(--green), var(--green-dark)); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 0.2rem; transition: all 0.3s; }
+        .auth-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,107,60,0.25); }
+        .auth-error { color: var(--red); font-size: 0.75rem; margin-top: -0.2rem; margin-bottom: 0.5rem; display: none; background: #fef2f2; padding: 5px 7px; border-radius: 6px; border: 1px solid #fee2e2; }
+        .auth-switch { text-align: center; margin-top: 0.8rem; color: #64748b; font-size: 0.8rem; }
+        .auth-switch a { color: var(--green); text-decoration: none; font-weight: 700; cursor: pointer; transition: var(--transition); }
+        .auth-switch a:hover { text-decoration: underline; }
+
+        .admin-modal { display: none; position: fixed; z-index: 3500; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 1rem; }
+        .admin-modal.show { display: flex; animation: fadeIn 0.2s ease; }
+        .admin-modal-content { background: white; padding: 1.2rem; border-radius: 14px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); animation: slideUp 0.3s ease; }
+        .update-form-group { margin-bottom: 0.6rem; }
+        .update-form-group label { display: block; font-weight: 600; margin-bottom: 0.25rem; color: var(--green); font-size: 0.8rem; }
+        .update-form-group input, .update-form-group textarea, .update-form-group select { width: 100%; padding: 7px 8px; border: 1px solid var(--border); border-radius: 7px; transition: var(--transition); font-size: 0.85rem; background: white; }
+        .update-form-group input:focus, .update-form-group textarea:focus, .update-form-group select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,107,60,0.1); }
+        .update-form-group textarea { height: 60px; resize: vertical; }
+        .update-form-actions { display: flex; gap: 0.6rem; margin-top: 0.8rem; }
+        .leader-photo-input-container { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; margin: 0 auto 0.6rem; background: #f8fafc; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+        .leader-photo-input-container:hover { border-color: var(--green); background: #f0fdf4; }
+        .leader-photo-input-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .back-to-top { position: fixed; bottom: 25px; right: 25px; width: 40px; height: 40px; background: linear-gradient(135deg, var(--green), var(--red)); color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: var(--shadow-lg); opacity: 0; visibility: hidden; transform: translateY(20px); transition: var(--transition); z-index: 999; }
+        .back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+        .back-to-top:hover { transform: translateY(-3px) scale(1.05); }
+
+        .reveal-on-scroll { opacity: 0; transform: translateY(25px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .reveal-on-scroll.revealed { opacity: 1; transform: translateY(0); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
+        .student-attached-section { background: var(--card-bg); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); max-width: 750px; margin: 0 auto; cursor: pointer; transition: var(--transition); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .student-attached-section::after { content: 'Click to expand'; position: absolute; top: 6px; right: 6px; font-size: 0.6rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 5px; border-radius: 6px; transition: var(--transition); }
+        .student-attached-section:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+        .student-attached-section:hover::after { opacity: 0; }
+        .attache-header { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .attache-photo { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--red)); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; overflow: hidden; box-shadow: 0 6px 15px rgba(0,0,0,0.2); flex-shrink: 0; border: 3px solid white; transition: var(--transition); }
+        .student-attached-section:hover .attache-photo { transform: scale(1.03); }
+        .attache-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .attache-info { flex: 1; min-width: 180px; }
+        .attache-name { font-size: 1.3rem; font-weight: 800; color: var(--green); margin-bottom: 0.2rem; }
+        .attache-title { color: var(--red); font-size: 0.9rem; margin-bottom: 0.6rem; font-weight: 600; }
+        .attache-full-details { display: none; margin-top: 1.2rem; padding-top: 1rem; border-top: 2px solid var(--border); animation: fadeInUp 0.4s ease; }
+        .attache-full-details.show { display: block; }
+
+        @media (max-width: 900px) {
+            .nav-links { position: absolute; top: 100%; left: 0; right: 0; background: linear-gradient(180deg, var(--green-dark), var(--green)); display: none; flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 1rem; box-shadow: var(--shadow-lg); border-top: 1px solid rgba(255,255,255,0.1); }
+            .nav-links.active { display: flex; }
+            .mobile-menu { display: flex; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .attache-header { flex-direction: column; text-align: center; }
+            .attache-photo { width: 100px; height: 100px; }
+            .presidents-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+            .news-grid { grid-template-columns: 1fr; }
+            .amci-iframe-wrapper iframe { height: 280px; }
+            .hero-content h1 { font-size: 2rem; }
+            .form-row-compact { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .membership-form { padding: 1rem; }
+            .auth-body { padding: 1rem; }
+            .admin-modal-content { padding: 1rem; }
+            .gallery-modal-content { padding: 1rem; }
+            .back-to-top { bottom: 15px; right: 15px; width: 36px; height: 36px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader-logo">
+            <img src="LOGO.jpg" alt="LISAM" onerror="this.src='image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+PGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzgiIGZpbGw9IiMwMDZCM0MiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIzMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiNmZmYiPkxJPC90ZXh0Pjwvc3ZnPg=='">
+        </div>
+        <div class="loader-text">Loading LISAM</div>
+        <div class="loader-sub">Design & Powered by <span style="color: var(--gold); font-weight: 700;">JUBEL TECH</span></div>
+        <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+    </div>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <img src="LOGO.jpg" alt="LISAM Logo" onerror="this.style.background='#fff'; this.src='image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MCA1MCI+PGNpcmNsZSBjeD0iMjUiIGN5PSIyNSIgcj0iMjMiIGZpbGw9IiNmZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMwMDZCM0MiPkxJPC90ZXh0Pjwvc3ZnPg=='">
+                <span>LISAM</span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#attache">Attaché</a></li>
+                <li><a href="#leadership">Leadership</a></li>
+                <li><a href="#news">News</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#amci-bourse">AMCI</a></li>
+                <li><a href="#updates">Updates</a></li>
+                <li><a href="#presidents">Presidents</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li>
+                    <button class="nav-btn" id="authNavBtn" onclick="showAuth()">👤 Sign In</button>
+                    <span class="user-badge" id="userBadge" onclick="logout()" title="Click to logout">👤 <span id="userNameDisplay">User</span></span>
+                    <button class="nav-btn" id="adminNavBtn" onclick="showAdminLogin()">🔒 Admin <span class="admin-badge" id="adminBadge">ON</span></button>
+                </li>
+            </ul>
+            <div class="mobile-menu" onclick="toggleMobileMenu()"><span></span><span></span><span></span></div>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="hero-scroll-bg">
+            <div class="hero-scroll-track" id="heroScrollTrack">
+                <img src="background 3.jpg" class="hero-scroll-img" onerror="this.style.background='linear-gradient(135deg, #006B3C, #C1272D)'">
+                <img src="background 1.jpg" class="hero-scroll-img" onerror="this.style.background='linear-gradient(135deg, #C1272D, #006B3C)'">
+                <img src="background 2.jpg" class="hero-scroll-img" onerror="this.style.background='linear-gradient(135deg, #006B3C, #C1272D)'">
+                <img src="background 6.jpg" class="hero-scroll-img" onerror="this.style.background='linear-gradient(135deg, #006B3C, #C1272D)'">
+            </div>
+        </div>
+        <div class="particles-bg" id="particlesBg"></div>
+        <button class="scroll-btn scroll-btn-left" onclick="scrollHero(-1)" aria-label="Previous slide">❮</button>
+        <button class="scroll-btn scroll-btn-right" onclick="scrollHero(1)" aria-label="Next slide">❯</button>
+        <div class="hero-content">
+            <h1 id="heroTitle"></h1>
+            <p class="hero-tagline">Unity • Cooperation • Strive • For • Educational Success</p>
+            <div class="cta-buttons">
+                <a href="#membership" class="btn btn-primary">Join LISAM</a>
+                <a href="#gallery" class="btn btn-secondary">View Activities</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="about">
+        <div class="container">
+            <h2 class="section-title">About LISAM</h2>
+            <div style="text-align: center; max-width: 750px; margin: 0 auto;">
+                <p style="font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem;">The Liberian Students Association in Morocco (LISAM) unites Liberian students for academic excellence, cultural preservation, and mutual support.</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                    <div style="padding: 1.2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); cursor: default;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'"><div style="font-size: 2.5rem; animation: pulse 3s infinite;">🎓</div><h3 style="color: var(--green); margin-top: 0.6rem; font-size: 1rem;">Academic Support</h3><p style="color: var(--text-muted); font-size: 0.85rem;">Tutoring & resources</p></div>
+                    <div style="padding: 1.2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); cursor: default;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'"><div style="font-size: 2.5rem; animation: pulse 3s infinite 0.5s;">🤝</div><h3 style="color: var(--green); margin-top: 0.6rem; font-size: 1rem;">Community</h3><p style="color: var(--text-muted); font-size: 0.85rem;">Events & networking</p></div>
+                    <div style="padding: 1.2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); cursor: default;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                        <svg class="liberia-flag-icon" viewBox="0 0 190 100" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 0.6rem; display: inline-block;">
+                            <rect width="190" height="100" fill="#fff"/><rect y="10" width="190" height="10" fill="#BF0A30"/><rect y="30" width="190" height="10" fill="#BF0A30"/><rect y="50" width="190" height="10" fill="#BF0A30"/><rect y="70" width="190" height="10" fill="#BF0A30"/><rect y="90" width="190" height="10" fill="#BF0A30"/><rect width="80" height="60" fill="#002868"/><polygon points="40,12 43,22 54,22 45,29 48,39 40,32 32,39 35,29 26,22 37,22" fill="#fff"/>
+                        </svg>
+                        <h3 style="color: var(--green); margin-top: 0.4rem; font-size: 1rem;">Cultural Heritage</h3><p style="color: var(--text-muted); font-size: 0.85rem;">Sharing Liberian heritage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="attache" style="background: #f1f5f9;">
+        <div class="container">
+            <h2 class="section-title">Student Attaché</h2>
+            <div class="student-attached-section" onclick="document.getElementById('attacheDetails').classList.toggle('show')">
+                <div class="attache-header">
+                    <div class="attache-photo"><img src="attache.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='👤'"></div>
+                    <div class="attache-info">
+                        <h3 class="attache-name">Mr Titus Kaderic Williams Sr</h3>
+                        <p class="attache-title">Embassy of Liberia in Morocco</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Click to view full contact information.</p>
+                    </div>
+                </div>
+                <div class="attache-full-details" id="attacheDetails">
+                    <h3 style="color: var(--green); margin-bottom: 0.6rem; font-size: 1rem;">Official Laison Contact & Office Address</h3>
+                    <p style="color: var(--text); line-height: 1.7; font-size: 0.9rem;"><strong>Phone Contact:</strong> +212-711-768-075<br><strong>Email:</strong> attache@lisam-morocco.org</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="leadership">
+        <div class="container">
+            <h2 class="section-title">Our Leadership</h2>
+            <div class="leadership-grid" id="leadershipGrid"></div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="news" style="background: #f1f5f9;">
+        <div class="container">
+            <h2 class="section-title">News & Achievements</h2>
+            <p class="section-subtitle">Flyers, awards, and programme announcements.</p>
+            <div style="text-align: center; margin-bottom: 0.8rem;">
+                <button class="admin-edit-btn" onclick="openNewsManager()" style="margin-top: 0;">📰 Manage News</button>
+            </div>
+            <div class="news-grid" id="newsGrid"></div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="gallery" style="background: white;">
+        <div class="container">
+            <h2 class="section-title">Our Activities & Memories</h2>
+            <p class="section-subtitle">Click a category to view photos & videos.</p>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+    </section>
+
+    <div id="galleryModal" class="gallery-modal">
+        <div class="gallery-modal-content">
+            <span class="close-btn" onclick="closeGalleryModal()">&times;</span>
+            <h2 class="gallery-modal-title" id="modalGalleryTitle">Gallery</h2>
+            <div class="admin-upload-controls">
+                <label class="admin-upload-btn">📸 Upload Images <input type="file" id="imageInput" accept="image/*" multiple onchange="handleFileUpload(event, 'image')"></label>
+                <label class="admin-upload-btn video-btn">🎬 Upload Videos <input type="file" id="videoInput" accept="video/*" multiple onchange="handleFileUpload(event, 'video')"></label>
+            </div>
+            <div style="margin: 0.6rem 0; font-weight: 700; color: var(--text); font-size: 0.85rem;">Images</div>
+            <div class="gallery-media-grid" id="modalImagesGrid"></div>
+            <div style="margin: 0.6rem 0; font-weight: 700; color: var(--text); font-size: 0.85rem;">Videos</div>
+            <div class="gallery-media-grid" id="modalVideosGrid"></div>
+        </div>
+    </div>
+
+    <div id="fullViewModal" class="full-view-modal" onclick="closeFullView(event)">
+        <div class="full-view-content">
+            <span class="full-view-close" onclick="closeFullView(event)">&times;</span>
+            <div id="fullViewContainer"></div>
+        </div>
+    </div>
+
+    <section class="amci-section reveal-on-scroll" id="amci-bourse">
+        <div class="container amci-container">
+            <h2 class="section-title">AMCI Bourse Code Checker</h2>
+            <div class="amci-iframe-wrapper">
+                <iframe src="https://cesamcentrale.org/code-de-bourse/" title="AMCI Bourse Checker"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="membership">
+        <div class="container">
+            <h2 class="section-title">Join LISAM</h2>
+            <div class="membership-form">
+                <form id="membershipForm" onsubmit="submitMembership(event)">
+                    <div class="form-row-compact">
+                        <div class="form-group"><label>Full Name *</label><input type="text" required placeholder="e.g. John Doe"></div>
+                        <div class="form-group"><label>Email Address *</label><input type="email" required placeholder="john@example.com"></div>
+                    </div>
+                    <div class="form-group"><label>Phone Number *</label><input type="tel" required placeholder="+212 6XX XXX XXX"></div>
+                    <div class="form-row-compact">
+                        <div class="form-group"><label>Institution/University *</label>
+                            <select required><option value="">Select Institution</option>
+                                <optgroup label="Universities"><option>FS / FLSH / FSJES</option><option>FMP</option><option>ENSA / ENCG</option><option>EMI</option><option>UM5R / UCA</option></optgroup>
+                                <optgroup label="Training"><option>OFPPT</option><option>ISTA / ISTC</option></optgroup>
+                                <optgroup label="Health"><option>ISPITS</option><option>IFCS</option></optgroup>
+                                <option>Other</option></select></div>
+                        <div class="form-group"><label>Field of Study *</label>
+                            <select required><option value="">Select Field</option><option>CS / IT</option><option>Engineering</option><option>Medicine</option><option>Law</option><option>Business</option><option>Languages</option><option>Other</option></select></div>
+                    </div>
+                    <div class="form-row-compact">
+                        <div class="form-group"><label>Academic Level *</label>
+                            <select required><option value="">Select Level</option><option>Bachelor Year 1</option><option>Bachelor Year 2</option><option>Bachelor Year 3</option><option>Master</option><option>PhD</option><option>Technician</option><option>Language</option></select></div>
+                        <div class="form-group"><label>City in Morocco *</label>
+                            <select required><option value="">Select City</option><option>Rabat</option><option>Casablanca</option><option>Marrakech</option><option>Essaouira</option><option>Safi</option><option>Fès</option><option>Tangier</option><option>Agadir</option><option>Other</option></select></div>
+                    </div>
+                    <div class="form-group"><label>Activity Interest *</label>
+                        <select required><option value="">Select Activity</option><option>Cultural Events</option><option>Academic Tutoring</option><option>Community Service</option><option>Sports</option><option>Networking</option><option>Technology</option></select></div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="updates" style="background: #f1f5f9;">
+        <div class="container">
+            <h2 class="section-title">Latest Updates</h2>
+            <div style="text-align: center; margin-bottom: 0.8rem;">
+                <button class="admin-edit-btn" onclick="openUpdatesManager()">📝 Manage Updates</button>
+            </div>
+            <div class="updates-container" id="updatesContainer"></div>
+        </div>
+    </section>
+
+    <section class="section reveal-on-scroll" id="presidents">
+        <div class="container">
+            <h2 class="section-title">Previous Presidents</h2>
+            <p style="text-align: center; max-width: 550px; margin: 0 auto 1.2rem; color: var(--text-muted); font-size: 0.95rem;">Honoring the leaders who have shaped LISAM.</p>
+            <div style="text-align: center; margin-bottom: 0.8rem;">
+                <button class="admin-edit-btn" onclick="openPresidentManager()" style="margin-top: 0;">👑 Manage Presidents</button>
+            </div>
+            <div class="presidents-grid" id="presidentsGrid"></div>
+        </div>
+    </section>
+
+    <section class="contact-section reveal-on-scroll" id="contact">
+        <div class="container">
+            <h2 class="section-title" style="color: var(--gold); margin-bottom: 0.4rem; font-size: 1.8rem;">Get In Touch</h2>
+            <p class="section-subtitle" style="color: #94a3b8; margin-bottom: 0.8rem; margin-top: 0; font-size: 0.95rem;">Have questions? Reach out to us directly.</p>
+            <div class="contact-grid">
+                <div class="contact-info-card">
+                    <div class="contact-info-item"><div class="contact-icon">📧</div><div class="contact-text"><h3>Email</h3><p>info@lisam-morocco.org</p></div></div>
+                    <div class="contact-info-item"><div class="contact-icon">📞</div><div class="contact-text"><h3>Phone</h3><p>+212 XXX XXX XXX</p></div></div>
+                    <div class="contact-info-item"><div class="contact-icon">📍</div><div class="contact-text"><h3>Location</h3><p>Student Center, Rabat</p></div></div>
+                </div>
+                <div class="contact-form-card">
+                    <form onsubmit="handleContactSubmit(event)">
+                        <div class="form-row"><input type="text" class="contact-input" placeholder="Name" required><input type="email" class="contact-input" placeholder="Email" required></div>
+                        <textarea class="contact-textarea" placeholder="Your message..." required></textarea>
+                        <button type="submit" class="submit-btn">Send Message ✉️</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="yearDisplay"></span> LISAM - Liberian Students Association in Morocco.</p>
+            <div class="social-links">
+                <a href="https://www.facebook.com/groups/111463258936980" target="_blank" class="facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                <a href="https://chat.whatsapp.com/LISAMGroup" target="_blank" class="whatsapp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+                <a href="https://www.instagram.com/lisam_morocco" target="_blank" class="instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                <a href="mailto:info@lisam-morocco.org" class="email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+            </div>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+    <div id="authModal" class="auth-modal">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h2>Welcome to LISAM</h2>
+                <p>Sign up or log in to access resources</p>
+                <button class="auth-close" onclick="closeAuth()">✕</button>
+            </div>
+            <div class="auth-body">
+                <div class="auth-tabs">
+                    <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                    <div class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</div>
+                </div>
+                <div id="loginForm" class="auth-form active">
+                    <p class="auth-error" id="loginError"></p>
+                    <div class="auth-input-group"><span class="input-icon">👤</span><input type="text" id="loginEmailPhone" placeholder="Email or Phone"></div>
+                    <div class="password-wrapper"><input type="password" id="loginPassword" placeholder="Password"><span class="toggle-pass" onclick="togglePassword('loginPassword', this)">👁️</span></div>
+                    <button class="auth-submit" onclick="handleLogin()">Login</button>
+                    <p class="auth-switch">No account? <a onclick="switchAuthTab('signup')">Sign Up</a></p>
+                </div>
+                <div id="signupForm" class="auth-form">
+                    <p class="auth-error" id="signupError"></p>
+                    <div class="auth-input-group"><span class="input-icon">👤</span><input type="text" id="signupName" placeholder="Full Name"></div>
+                    <div class="auth-input-group"><span class="input-icon">📧</span><input type="text" id="signupEmailPhone" placeholder="Email or Phone"></div>
+                    <div class="password-wrapper"><input type="password" id="signupPassword" placeholder="Password"><span class="toggle-pass" onclick="togglePassword('signupPassword', this)">👁️</span></div>
+                    <div class="password-wrapper"><input type="password" id="signupConfirmPassword" placeholder="Confirm"><span class="toggle-pass" onclick="togglePassword('signupConfirmPassword', this)">👁️</span></div>
+                    <button class="auth-submit" style="background: linear-gradient(135deg, var(--red), var(--red-dark));" onclick="handleSignup()">Sign Up</button>
+                    <p class="auth-switch">Have account? <a onclick="switchAuthTab('login')">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminUpdatesModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <span class="close-btn" onclick="closeUpdatesManager()" style="top:10px; right:10px;">✕</span>
+            <h2 style="color: var(--green); margin-bottom: 0.6rem; font-weight: 800; font-size: 1.1rem;">Manage Updates</h2>
+            <div class="update-form-group"><label>Date</label><input type="date" id="updateDateInput"></div>
+            <div class="update-form-group"><label>Title</label><input type="text" id="updateTitleInput" placeholder="Title"></div>
+            <div class="update-form-group"><label>Content</label><textarea id="updateContentInput" placeholder="Details..."></textarea></div>
+            <div class="update-form-group"><label>PDF (Optional)</label><input type="file" id="updatePdfInput" accept=".pdf"></div>
+            <div class="remove-pdf-check" id="removePdfCheck">
+                <input type="checkbox" id="removePdfCheckbox"> <label for="removePdfCheckbox">Remove current PDF</label>
+            </div>
+            <input type="hidden" id="editUpdateIndex" value="-1">
+            <div class="update-form-actions"><button class="btn btn-primary" onclick="saveUpdate()">💾 Save & Close</button></div>
+            <div style="margin-top: 1.2rem; border-top: 2px solid var(--border); padding-top: 0.6rem;"><h3 style="font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">Recent Updates</h3><div id="adminUpdateList"></div></div>
+        </div>
+    </div>
+
+    <div id="adminLeaderModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <span class="close-btn" onclick="closeAdminLeaderModal()" style="top:10px; right:10px;">✕</span>
+            <h2 style="color: var(--green); margin-bottom: 0.6rem; font-weight: 800; font-size: 1.1rem;">Edit Leader</h2>
+            <input type="hidden" id="editLeaderId">
+            <div class="leader-photo-input-container" id="leaderPhotoPreview" onclick="document.getElementById('leaderPhotoInput').click()"><span style="color: #94a3b8;">Photo</span></div>
+            <input type="file" id="leaderPhotoInput" accept="image/*" style="display: none;" onchange="previewLeaderPhoto(this)">
+            <div class="update-form-group"><label>Name</label><input type="text" id="editLeaderName"></div>
+            <div class="update-form-group"><label>Position</label><input type="text" id="editLeaderPosition"></div>
+            <div class="update-form-group"><label>Bio/Details</label><textarea id="editLeaderBio"></textarea></div>
+            <div class="update-form-actions"><button class="btn btn-primary" onclick="saveLeaderData()">Save Changes</button></div>
+        </div>
+    </div>
+
+    <div id="adminPresidentModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <span class="close-btn" onclick="closePresidentManager()" style="top:10px; right:10px;">✕</span>
+            <h2 style="color: var(--green); margin-bottom: 0.6rem; font-weight: 800; font-size: 1.1rem;">Add / Edit President</h2>
+            <input type="hidden" id="editPresidentId" value="">
+            <div class="leader-photo-input-container" id="presidentPhotoPreview" onclick="document.getElementById('presidentPhotoInput').click()"><span style="color: #94a3b8;">Photo</span></div>
+            <input type="file" id="presidentPhotoInput" accept="image/*" style="display: none;" onchange="previewPresidentPhoto(this)">
+            <div class="update-form-group"><label>Name</label><input type="text" id="editPresidentName" placeholder="President Name"></div>
+            <div class="update-form-group"><label>Tenure</label><input type="text" id="editPresidentTenure" placeholder="e.g. 2020 - 2021"></div>
+            <div class="update-form-group"><label>University (Optional)</label><input type="text" id="editPresidentUniversity" placeholder="e.g. UM5R"></div>
+            <div class="update-form-actions"><button class="btn btn-primary" onclick="savePresidentData()">💾 Save & Close</button></div>
+        </div>
+    </div>
+
+    <div id="adminNewsModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <span class="close-btn" onclick="closeNewsManager()" style="top:10px; right:10px;">✕</span>
+            <h2 style="color: var(--green); margin-bottom: 0.6rem; font-weight: 800; font-size: 1.1rem;">Add News / Flyer / Award</h2>
+            <input type="hidden" id="editNewsId" value="">
+            <div class="update-form-group"><label>Type</label>
+                <select id="editNewsType">
+                    <option value="announcement">📢 Announcement</option>
+                    <option value="award">🏆 Award</option>
+                    <option value="flyer">📄 Flyer</option>
+                </select>
+            </div>
+            <div class="update-form-group"><label>Title</label><input type="text" id="editNewsTitle" placeholder="Title"></div>
+            <div class="update-form-group"><label>Date</label><input type="date" id="editNewsDate"></div>
+            <div class="update-form-group"><label>Description</label><textarea id="editNewsDesc" placeholder="Brief description..."></textarea></div>
+            <div class="update-form-group"><label>Image/Flyer</label><input type="file" id="editNewsImageInput" accept="image/*"></div>
+            <div class="update-form-actions"><button class="btn btn-primary" onclick="submitNewsForm()">💾 Save & Close</button></div>
+        </div>
+    </div>
+
+    <div id="adminLoginModal" class="auth-modal" style="background: rgba(0,0,0,0.8);">
+        <div class="auth-box" style="max-width: 360px;">
+            <div class="auth-header" style="background: #1e293b;">
+                <h2>🔐 Admin Access</h2>
+                <p>Enter admin password</p>
+                <button class="auth-close" onclick="closeAdminLogin()">✕</button>
+            </div>
+            <div class="auth-body">
+                <div class="password-wrapper"><input type="password" id="adminPassword" placeholder="Admin Password" onkeypress="if(event.key==='Enter') attemptAdminLogin()"><span class="toggle-pass" onclick="togglePassword('adminPassword', this)">👁️</span></div>
+                <p class="auth-error" id="adminLoginError"></p>
+                <button class="auth-submit" onclick="attemptAdminLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = 'lisam2024';
+        let isAdmin = false;
+        let currentUser = null;
+        let galleryState = {};
+        let updatesState = [];
+        let leadershipData = [];
+        let presidentsData = [];
+        let newsData = [];
+        let db = null;
+        let currentGalleryType = '';
+        let heroInterval = null;
+        let currentSlide = 0;
+
+        const defaultLeadership = [
+            { id: 'L1', name: 'Abraham Kamara', position: 'President', photo: 'PRESIDENT.jpg', bio: 'Details here.' },
+            { id: 'L2', name: 'Mr Edwin Samah', position: 'Vice President', photo: 'VP.jpg', bio: 'Details here.' },
+            { id: 'L3', name: 'Mr Paul Kofi Quaicoe Jr', position: 'General Secretary', photo: 'secretary.jpg', bio: 'Details here.' },
+            { id: 'L4', name: 'Ms. Ellen G. Quaye', position: 'Financial Secretary', photo: 'financial secretary.jpg', bio: 'Details here.' },
+            { id: 'L5', name: 'Ms. Tengbeh Trawally', position: 'Treasurer', photo: 'treasurer .jpeg', bio: 'Details here.' },
+            { id: 'L6', name: 'Assistant Financial Secretary', position: 'Assistant Fin. Sec.', photo: 'assistant-financial.jpg', bio: 'Details here.' },
+            { id: 'L7', name: 'Parliamentarian', position: 'Parliamentarian', photo: 'parliamentarian.jpg', bio: 'Details here.' },
+            { id: 'L8', name: 'Auditor General', position: 'Auditor General', photo: 'auditor-general.jpg', bio: 'Details here.' }
+        ];
+
+        const defaultPresidents = [
+            { id: 'P1', name: 'President Name 1', tenure: '2020 - 2021', university: '', photo: 'past president 1.jpg' },
+            { id: 'P2', name: 'President Name 2', tenure: '2022 - 2023', university: '', photo: 'past president 2.jpg' },
+            { id: 'P3', name: 'President Name 3', tenure: '2023 - 2024', university: '', photo: 'past president 3.jpg' },
+            { id: 'P4', name: 'President Name 4', tenure: '2024 - 2025', university: '', photo: 'past president 4.jpg' }
+        ];
+
+        const galleryCategories = [
+            { id: 'cultural-event', name: 'Cultural Festival', icon: '📸' },
+            { id: 'study-session', name: 'Study Sessions', icon: '📚' },
+            { id: 'graduation', name: 'Graduation', icon: '🎓' },
+            { id: 'community-service', name: 'Community Service', icon: '🤝' },
+            { id: 'welcome-event', name: 'Welcome Event', icon: '🎉' },
+            { id: 'independence-day', name: 'Independence Day', icon: '🇱🇷' }
+        ];
+
+        function safeLocalStorage() {
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    return { get: (k) => localStorage.getItem(k), set: (k, v) => localStorage.setItem(k, v), remove: (k) => localStorage.removeItem(k) };
+                }
+            } catch(e) { console.warn('localStorage not available', e); }
+            return { get: () => null, set: () => {}, remove: () => {} };
+        }
+        const storage = safeLocalStorage();
+
+        function togglePassword(id, el) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            if (input.type === 'password') { input.type = 'text'; el.textContent = '🙈'; } 
+            else { input.type = 'password'; el.textContent = '👁️'; }
+        }
+
+        function initDB() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) { resolve(null); return; }
+                const request = indexedDB.open('LISAM_DB_V2', 1);
+                request.onupgradeneeded = (e) => { const d = e.target.result; if (!d.objectStoreNames.contains('media')) d.createObjectStore('media', { keyPath: 'id' }); };
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        function dbPut(id, data) { return new Promise((resolve, reject) => { if (!db) { resolve(); return; } try { const tx = db.transaction(['media'], 'readwrite'); tx.objectStore('media').put({ id, data }); tx.oncomplete = () => resolve(); tx.onerror = () => reject(); } catch(e) { reject(); } }); }
+        function dbGet(id) { return new Promise((resolve) => { if (!db) { resolve(null); return; } try { const tx = db.transaction(['media'], 'readonly'); const req = tx.objectStore('media').get(id); req.onsuccess = () => resolve(req.result ? req.result.data : null); req.onerror = () => resolve(null); } catch(e) { resolve(null); } }); }
+        function dbDelete(id) { return new Promise((resolve) => { if (!db) { resolve(); return; } try { const tx = db.transaction(['media'], 'readwrite'); tx.objectStore('media').delete(id); tx.oncomplete = () => resolve(); } catch(e) { resolve(); } }); }
+        function dbGetAll() { return new Promise((resolve) => { if (!db) { resolve([]); return; } try { const tx = db.transaction(['media'], 'readonly'); const req = tx.objectStore('media').getAll(); req.onsuccess = () => resolve(req.result || []); req.onerror = () => resolve([]); } catch(e) { resolve([]); } }); }
+        function readFileAsDataURL(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file); }); }
+
+        function typeHeroTitle() {
+            const text = "Liberian Students Association in Morocco";
+            const el = document.getElementById("heroTitle");
+            if (!el) return;
+            el.textContent = "";
+            let i = 0;
+            function typeChar() { if (i < text.length) { el.textContent += text.charAt(i); i++; setTimeout(typeChar, 50); } }
+            setTimeout(typeChar, 300);
+        }
+
+        function initScrollObserver() {
+            const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('revealed'); } }); }, { threshold: 0.05 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        function handleScroll() {
+            const backBtn = document.getElementById('backToTop');
+            const scrollBar = document.getElementById('scrollProgress');
+            if (scrollBar) {
+                const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (window.scrollY / scrollHeight) * 100;
+                scrollBar.style.width = scrolled + '%';
+            }
+            if (backBtn) { if (window.scrollY > 500) backBtn.classList.add('visible'); else backBtn.classList.remove('visible'); }
+        }
+
+        function initParticles() {
+            const container = document.getElementById('particlesBg');
+            if (!container) return;
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 10 + 5;
+                particle.style.width = size + 'px'; particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%'; particle.style.top = (100 + Math.random() * 20) + '%';
+                particle.style.animationDuration = (Math.random() * 15 + 10) + 's'; particle.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            document.getElementById('yearDisplay').textContent = new Date().getFullYear();
+            await initDB();
+            loadGalleryState(); loadUpdatesState(); loadLeadershipData(); loadPresidentsData(); loadNewsData(); loadUserState();
+            await loadGalleryMedia();
+            initGalleryGrid(); renderLeadership(); renderUpdates(); renderPresidents(); renderNews();
+            typeHeroTitle(); startAutoScroll(); initScrollObserver(); initParticles();
+            window.addEventListener('scroll', handleScroll, { passive: true }); handleScroll();
+            setTimeout(() => { const ls = document.getElementById('loading-screen'); if (ls) ls.classList.add('hidden'); }, 1200);
+        });
+
+        function startAutoScroll() { if (heroInterval) clearInterval(heroInterval); heroInterval = setInterval(() => { scrollHero(1); }, 8000); }
+        document.querySelectorAll('a[href^="#"]').forEach(a => { a.addEventListener('click', e => { e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if(t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.getElementById('navLinks').classList.remove('active'); } }); });
+        function toggleMobileMenu() { document.getElementById('navLinks').classList.toggle('active'); }
+        function submitMembership(e) { e.preventDefault(); alert('Application Submitted! We will contact you soon.'); e.target.reset(); }
+        function handleContactSubmit(e) { e.preventDefault(); alert('Message sent successfully!'); e.target.reset(); }
+        
+        function updateHeroScroll(idx) { currentSlide = idx; document.getElementById('heroScrollTrack').style.transform = `translateX(-${idx * 25}%)`; }
+        function scrollHero(direction) { startAutoScroll(); currentSlide += direction; if (currentSlide < 0) currentSlide = 3; if (currentSlide > 3) currentSlide = 0; updateHeroScroll(currentSlide); }
+
+        function loadUserState() { try { const stored = storage.get('lisam_current_user'); currentUser = stored ? JSON.parse(stored) : null; } catch(e) { currentUser = null; } if(currentUser) { const btn = document.getElementById('authNavBtn'); const badge = document.getElementById('userBadge'); const nameDisplay = document.getElementById('userNameDisplay'); if(btn) btn.style.display = 'none'; if(badge) badge.classList.add('show'); if(nameDisplay) nameDisplay.textContent = currentUser.name; } }
+        function showAuth() { document.getElementById('authModal').classList.add('show'); switchAuthTab('login'); }
+        function closeAuth() { document.getElementById('authModal').classList.remove('show'); }
+        function switchAuthTab(tab) { document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active')); if(tab === 'login') { document.querySelectorAll('.auth-tab')[0].classList.add('active'); document.getElementById('loginForm').classList.add('active'); } else { document.querySelectorAll('.auth-tab')[1].classList.add('active'); document.getElementById('signupForm').classList.add('active'); } document.querySelectorAll('.auth-error').forEach(e => { if(e) { e.textContent = ''; e.style.display = 'none'; } }); }
+        function handleSignup() { const n = document.getElementById('signupName').value.trim(); const c = document.getElementById('signupEmailPhone').value.trim(); const p = document.getElementById('signupPassword').value; const cp = document.getElementById('signupConfirmPassword').value; if(!n||!c) return showError('signupError','Fill all fields'); if(!c.includes('@')&&c.length<8) return showError('signupError','Valid contact required'); if(p.length<6) return showError('signupError','Min 6 chars'); if(p!==cp) return showError('signupError','Passwords mismatch'); let u=[]; try { const stored = storage.get('lisam_users'); u = stored ? JSON.parse(stored) : []; } catch(e) {} if(u.some(x=>x.contact===c)) return showError('signupError','Contact exists'); u.push({id:Date.now(),name:n,contact:c,password:btoa(p)}); storage.set('lisam_users',JSON.stringify(u)); currentUser={id:Date.now(),name:n,contact:c}; storage.set('lisam_current_user',JSON.stringify(currentUser)); document.getElementById('authNavBtn').style.display='none'; document.getElementById('userBadge').classList.add('show'); document.getElementById('userNameDisplay').textContent=n; closeAuth(); alert('Welcome, '+n+'!'); }
+        function handleLogin() { const c = document.getElementById('loginEmailPhone').value.trim(); const p = document.getElementById('loginPassword').value; if(!c||!p) return showError('loginError','Fill all fields'); let u=[]; try { const stored = storage.get('lisam_users'); u = stored ? JSON.parse(stored) : []; } catch(e) {} const x=u.find(v=>v.contact===c&&atob(v.password)===p); if(x) { currentUser={id:x.id,name:x.name,contact:x.contact}; storage.set('lisam_current_user',JSON.stringify(currentUser)); document.getElementById('authNavBtn').style.display='none'; document.getElementById('userBadge').classList.add('show'); document.getElementById('userNameDisplay').textContent=x.name; closeAuth(); alert('Welcome back, '+x.name+'!'); } else showError('loginError','Invalid credentials'); }
+        function logout() { if(confirm('Logout?')) { currentUser=null; storage.remove('lisam_current_user'); document.getElementById('authNavBtn').style.display='inline-block'; document.getElementById('userBadge').classList.remove('show'); } }
+        function showError(id,msg) { const el = document.getElementById(id); if(el) { el.textContent=msg; el.style.display='block'; } }
+
+        function showAdminLogin() { if(isAdmin) { if(confirm('Exit Admin Mode?')) { isAdmin=false; document.body.classList.remove('admin-mode'); const badge = document.getElementById('adminBadge'); if(badge) badge.classList.remove('show'); document.getElementById('adminNavBtn').innerHTML='🔒 Admin <span class="admin-badge" id="adminBadge">ON</span>'; renderLeadership(); initGalleryGrid(); renderUpdates(); renderPresidents(); renderNews(); } } else document.getElementById('adminLoginModal').classList.add('show'); }
+        function closeAdminLogin() { document.getElementById('adminLoginModal').classList.remove('show'); const pwd = document.getElementById('adminPassword'); if(pwd) pwd.value = ''; const err = document.getElementById('adminLoginError'); if(err) err.style.display='none'; }
+        function attemptAdminLogin() { const pwd = document.getElementById('adminPassword').value; if(pwd===ADMIN_PASSWORD) { isAdmin=true; document.body.classList.add('admin-mode'); const badge = document.getElementById('adminBadge'); if(badge) badge.classList.add('show'); document.getElementById('adminNavBtn').innerHTML='🔓 Admin <span class="admin-badge show">ON</span> (Click to logout)'; closeAdminLogin(); renderLeadership(); initGalleryGrid(); renderUpdates(); renderPresidents(); renderNews(); } else { const err = document.getElementById('adminLoginError'); err.textContent='Incorrect password'; err.style.display='block'; } }
+
+        function loadLeadershipData() { const stored = storage.get('lisam_leadership_data'); leadershipData = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultLeadership)); saveLeadershipData(); }
+        function saveLeadershipData() { storage.set('lisam_leadership_data', JSON.stringify(leadershipData)); }
+        function renderLeadership() { const grid = document.getElementById('leadershipGrid'); if(!grid) return; grid.innerHTML = ''; leadershipData.forEach(leader => { const div = document.createElement('div'); div.className = 'leader-card fade-in-up'; div.innerHTML = `<div class="leader-photo-container"><img src="${leader.photo}" onerror="this.style.display='none'; this.parentElement.innerHTML='${leader.name.charAt(0)}';"></div><div class="leader-name">${leader.name}</div><div class="leader-position">${leader.position}</div><button class="leader-bio-btn" onclick="toggleLeaderDetails('bio-${leader.id}')">▼ Bio</button><div class="leader-details" id="bio-${leader.id}"><p>${leader.bio}</p></div><button class="admin-edit-leader-btn" onclick="openAdminLeaderModal('${leader.id}')" title="Edit">✏️</button>`; grid.appendChild(div); }); }
+        function toggleLeaderDetails(id) { const el = document.getElementById(id); if(el) el.classList.toggle('show'); }
+        function openAdminLeaderModal(id) { const l = leadershipData.find(x => x.id === id); if(!l) return; document.getElementById('editLeaderId').value = id; document.getElementById('editLeaderName').value = l.name; document.getElementById('editLeaderPosition').value = l.position; document.getElementById('editLeaderBio').value = l.bio; const p = document.getElementById('leaderPhotoPreview'); p.innerHTML = (l.photo && l.photo.startsWith('')) ? `<img src="${l.photo}">` : `<span style="color: #94a3b8;">Photo</span>`; document.getElementById('leaderPhotoInput').value = ''; document.getElementById('adminLeaderModal').classList.add('show'); }
+        function closeAdminLeaderModal() { document.getElementById('adminLeaderModal').classList.remove('show'); }
+        function previewLeaderPhoto(input) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => document.getElementById('leaderPhotoPreview').innerHTML = `<img src="${e.target.result}">`; r.readAsDataURL(input.files[0]); } }
+        async function saveLeaderData() { const id = document.getElementById('editLeaderId').value; const idx = leadershipData.findIndex(l => l.id === id); if(idx > -1) { leadershipData[idx].name = document.getElementById('editLeaderName').value; leadershipData[idx].position = document.getElementById('editLeaderPosition').value; leadershipData[idx].bio = document.getElementById('editLeaderBio').value; const fileInput = document.getElementById('leaderPhotoInput'); if(fileInput.files.length > 0) { try { leadershipData[idx].photo = await readFileAsDataURL(fileInput.files[0]); } catch(e) {} } saveLeadershipData(); renderLeadership(); closeAdminLeaderModal(); } }
+
+        // Presidents
+        function loadPresidentsData() { const stored = storage.get('lisam_presidents_data'); presidentsData = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultPresidents)); savePresidentsData(); }
+        function savePresidentsData() { storage.set('lisam_presidents_data', JSON.stringify(presidentsData)); }
+        function renderPresidents() { const grid = document.getElementById('presidentsGrid'); if(!grid) return; grid.innerHTML = ''; presidentsData.forEach(pres => { const div = document.createElement('div'); div.className = 'president-card fade-in-up'; div.innerHTML = `<div class="president-admin-controls"><button class="president-admin-btn" onclick="openPresidentEditor('${pres.id}')" title="Edit">✏️</button><button class="president-admin-btn delete-btn" onclick="deletePresident('${pres.id}')" title="Delete">🗑️</button></div><div class="president-photo"><img src="${pres.photo}" onerror="this.style.display='none'; this.parentElement.innerHTML='👤'"></div><div class="president-info"><h3 class="president-name">${pres.name}</h3>${pres.university ? `<p class="president-university">${pres.university}</p>` : ''}<span class="president-tenure">${pres.tenure}</span></div>`; grid.appendChild(div); }); if(isAdmin) { const addDiv = document.createElement('div'); addDiv.className = 'president-placeholder-add'; addDiv.onclick = openPresidentEditor; addDiv.innerHTML = `<div class="icon">➕</div><div class="text">Add President</div>`; grid.appendChild(addDiv); } }
+        function openPresidentManager() { openPresidentEditor(); }
+        function closePresidentManager() { document.getElementById('adminPresidentModal').classList.remove('show'); }
+        function openPresidentEditor(id) { document.getElementById('editPresidentId').value = id || ''; document.getElementById('presidentPhotoInput').value = ''; if(id) { const p = presidentsData.find(x => x.id === id); if(!p) return; document.getElementById('editPresidentName').value = p.name; document.getElementById('editPresidentTenure').value = p.tenure; document.getElementById('editPresidentUniversity').value = p.university || ''; const preview = document.getElementById('presidentPhotoPreview'); preview.innerHTML = (p.photo && p.photo.startsWith('')) ? `<img src="${p.photo}">` : `<span style="color: #94a3b8;">Photo</span>`; } else { document.getElementById('editPresidentName').value = ''; document.getElementById('editPresidentTenure').value = ''; document.getElementById('editPresidentUniversity').value = ''; document.getElementById('presidentPhotoPreview').innerHTML = '<span style="color: #94a3b8;">Photo</span>'; } document.getElementById('adminPresidentModal').classList.add('show'); }
+        function previewPresidentPhoto(input) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => document.getElementById('presidentPhotoPreview').innerHTML = `<img src="${e.target.result}">`; r.readAsDataURL(input.files[0]); } }
+        async function savePresidentData() { const id = document.getElementById('editPresidentId').value; const name = document.getElementById('editPresidentName').value.trim(); const tenure = document.getElementById('editPresidentTenure').value.trim(); const university = document.getElementById('editPresidentUniversity').value.trim(); if(!name || !tenure) return alert('Name and Tenure are required'); const photoInput = document.getElementById('presidentPhotoInput'); let photoUrl = ''; if(photoInput.files.length > 0) { try { photoUrl = await readFileAsDataURL(photoInput.files[0]); } catch(e) {} } if(id) { const idx = presidentsData.findIndex(p => p.id === id); if(idx > -1) { presidentsData[idx].name = name; presidentsData[idx].tenure = tenure; presidentsData[idx].university = university; if(photoUrl) presidentsData[idx].photo = photoUrl; } } else { presidentsData.push({ id: 'P' + Date.now(), name: name, tenure: tenure, university: university, photo: photoUrl || '' }); } savePresidentsData(); renderPresidents(); closePresidentManager(); }
+        function deletePresident(id) { if(!confirm('Remove this president?')) return; presidentsData = presidentsData.filter(p => p.id !== id); savePresidentsData(); renderPresidents(); }
+
+        // News - Completely rewritten for reliability
+        function loadNewsData() { 
+            const stored = storage.get('lisam_news_data');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        // Deduplicate by ID
+                        const map = new Map();
+                        parsed.forEach(item => map.set(item.id, item));
+                        newsData = Array.from(map.values());
+                    } else {
+                        newsData = [];
+                    }
+                } catch(e) {
+                    newsData = [];
+                }
+            } else {
+                newsData = [];
+            }
+            saveNewsData();
+        }
+        function saveNewsData() { storage.set('lisam_news_data', JSON.stringify(newsData)); }
+        
+        function renderNews() { 
+            const grid = document.getElementById('newsGrid'); 
+            if(!grid) return; 
+            grid.innerHTML = '';
+            
+            // Deduplicate
+            const seen = new Map();
+            newsData.forEach(n => seen.set(n.id, n));
+            const uniqueNews = Array.from(seen.values());
+            const sortedNews = uniqueNews.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            sortedNews.forEach(n => { 
+                const badgeClass = n.type === 'award' ? 'award' : n.type === 'flyer' ? 'flyer' : 'announcement';
+                const badgeText = n.type === 'award' ? '🏆 Award' : n.type === 'flyer' ? '📄 Flyer' : '📢 Announcement';
+                const card = document.createElement('div'); 
+                card.className = 'news-card fade-in-up';
+                
+                const hasValidImage = n.image && typeof n.image === 'string' && n.image.length > 50;
+                
+                if(hasValidImage) {
+                    card.innerHTML = `
+                        <div class="news-admin-controls">
+                            <button class="news-admin-btn" onclick="openNewsEditor('${n.id}')" title="Edit">✏️</button>
+                            <button class="news-admin-btn" style="background:#fee2e2;color:#dc2626;" onclick="deleteNews('${n.id}')" title="Delete">✕</button>
+                        </div>
+                        <div class="news-card-image">
+                            <img src="${n.image}" alt="${n.title}" onerror="this.parentElement.innerHTML='<span class=\\'flyer-icon\\'>📄</span>'">
+                        </div>
+                        <div class="news-card-content">
+                            <span class="news-card-badge ${badgeClass}">${badgeText}</span>
+                            <h3 class="news-card-title">${n.title}</h3>
+                            <p class="news-card-date">${n.date}</p>
+                            <p class="news-card-desc">${n.description || ''}</p>
+                        </div>`;
+                } else {
+                    card.innerHTML = `
+                        <div class="news-admin-controls">
+                            <button class="news-admin-btn" onclick="openNewsEditor('${n.id}')" title="Edit">✏️</button>
+                            <button class="news-admin-btn" style="background:#fee2e2;color:#dc2626;" onclick="deleteNews('${n.id}')" title="Delete">✕</button>
+                        </div>
+                        <div class="news-card-image">
+                            <span class="flyer-icon">${n.type === 'award' ? '🏆' : n.type === 'flyer' ? '📄' : '📢'}</span>
+                        </div>
+                        <div class="news-card-content">
+                            <span class="news-card-badge ${badgeClass}">${badgeText}</span>
+                            <h3 class="news-card-title">${n.title}</h3>
+                            <p class="news-card-date">${n.date}</p>
+                            <p class="news-card-desc">${n.description || ''}</p>
+                        </div>`;
+                }
+                grid.appendChild(card); 
+            }); 
+            
+            if(isAdmin) { 
+                const addDiv = document.createElement('div'); 
+                addDiv.className = 'news-placeholder-add'; 
+                addDiv.onclick = openNewsEditor; 
+                addDiv.innerHTML = `<div class="icon">➕</div><div class="text">Add News Item</div>`; 
+                grid.appendChild(addDiv); 
+            } 
+        }
+
+        function openNewsManager() { if(!isAdmin) return alert("Admin required"); openNewsEditor(); }
+        function closeNewsManager() { document.getElementById('adminNewsModal').classList.remove('show'); }
+        function openNewsEditor(id) { 
+            document.getElementById('editNewsId').value = id || ''; 
+            document.getElementById('editNewsImageInput').value = ''; 
+            if(id) { 
+                const n = newsData.find(x => x.id === id); 
+                if(!n) return; 
+                document.getElementById('editNewsType').value = n.type || 'announcement'; 
+                document.getElementById('editNewsTitle').value = n.title; 
+                document.getElementById('editNewsDate').value = n.date; 
+                document.getElementById('editNewsDesc').value = n.description || ''; 
+            } else { 
+                document.getElementById('editNewsType').value = 'announcement'; 
+                document.getElementById('editNewsTitle').value = ''; 
+                document.getElementById('editNewsDate').value = new Date().toISOString().split('T')[0]; 
+                document.getElementById('editNewsDesc').value = ''; 
+            } 
+            document.getElementById('adminNewsModal').classList.add('show'); 
+        }
+
+        async function submitNewsForm() { 
+            const id = document.getElementById('editNewsId').value; 
+            const type = document.getElementById('editNewsType').value; 
+            const title = document.getElementById('editNewsTitle').value.trim(); 
+            const date = document.getElementById('editNewsDate').value; 
+            const desc = document.getElementById('editNewsDesc').value.trim(); 
+            if(!title) return alert('Title is required'); 
+            if(!date) return alert('Date is required');
+            
+            const imageInput = document.getElementById('editNewsImageInput'); 
+            let imageUrl = ''; 
+            
+            if(imageInput && imageInput.files && imageInput.files.length > 0) { 
+                try { 
+                    imageUrl = await readFileAsDataURL(imageInput.files[0]); 
+                } catch(e) { 
+                    return alert('Failed to read image file');
+                } 
+            } 
+            
+            if(id) { 
+                const idx = newsData.findIndex(n => n.id === id); 
+                if(idx > -1) { 
+                    newsData[idx].type = type; 
+                    newsData[idx].title = title; 
+                    newsData[idx].date = date; 
+                    newsData[idx].description = desc; 
+                    if(imageUrl) newsData[idx].image = imageUrl; 
+                } else {
+                    return alert('News item not found');
+                }
+            } else { 
+                const newNews = { id: 'N' + Date.now(), type: type, title: title, date: date, description: desc, image: imageUrl || '' };
+                newsData.push(newNews); 
+            } 
+            
+            saveNewsData(); 
+            renderNews(); 
+            closeNewsManager(); 
+            alert('News saved successfully!');
+        }
+        
+        function deleteNews(id) { 
+            if(!confirm('Delete this news item?')) return; 
+            newsData = newsData.filter(n => n.id !== id); 
+            saveNewsData(); 
+            renderNews(); 
+        }
+
+        function loadGalleryState() { try { const stored = storage.get('lisam_gallery_data'); galleryState = stored ? JSON.parse(stored) : {}; } catch(e) {} galleryCategories.forEach(c => { if(!galleryState[c.id]) galleryState[c.id]={images:[],videos:[]}; }); }
+        function saveGalleryState() { storage.set('lisam_gallery_data', JSON.stringify(galleryState)); }
+        async function loadGalleryMedia() { try { const items = await dbGetAll(); galleryCategories.forEach(cat => { galleryState[cat.id].images = items.filter(i => i.id && i.id.startsWith(`img_${cat.id}_`)).map(i => ({ id: i.id, url: i.data, name: i.name || 'image' })); galleryState[cat.id].videos = items.filter(i => i.id && i.id.startsWith(`vid_${cat.id}_`)).map(i => ({ id: i.id, url: i.data, name: i.name || 'video' })); }); } catch(e) { console.warn("Failed to load gallery media", e); } }
+        function initGalleryGrid() { const g = document.getElementById('galleryGrid'); if(!g) return; g.innerHTML = ''; galleryCategories.forEach(cat => { const d = galleryState[cat.id]; const hasImg = d && d.images.length > 0; const div = document.createElement('div'); div.className = 'gallery-item' + (hasImg ? ' has-image' : ''); if(hasImg && d.images[0].url) div.style.backgroundImage = `url('${d.images[0].url}')`; div.onclick = () => openGalleryModal(cat.id); div.innerHTML = `<div class="upload-prompt" style="background: linear-gradient(135deg, var(--green), var(--red));"><div style="font-size:2.5rem;">${cat.icon}</div><div style="margin-top:8px; font-weight:600;">${cat.name}</div><div style="font-size:0.85rem;opacity:0.8; margin-top:4px;">${hasImg ? (d.images.length + d.videos.length) + ' items' : 'No media yet'}</div></div><span class="overlay-label">${cat.name}</span><div class="admin-add-indicator">+</div>`; g.appendChild(div); }); }
+        function openGalleryModal(t) { currentGalleryType = t; document.getElementById('modalGalleryTitle').textContent = galleryCategories.find(c=>c.id===t)?.name || 'Gallery'; renderGalleryContent(t); document.getElementById('galleryModal').classList.add('show'); }
+        function closeGalleryModal() { document.getElementById('galleryModal').classList.remove('show'); }
+        async function handleFileUpload(e, type) { if(!isAdmin) return alert('Admin access required.'); if(!db) return alert('Storage not ready.'); const files = e.target.files; if(!files || !files.length) return; let processed = 0; for(const f of files) { try { const dataUrl = await readFileAsDataURL(f); const mediaId = `${type === 'image' ? 'img' : 'vid'}_${currentGalleryType}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`; await dbPut(mediaId, dataUrl); const item = { id: mediaId, url: dataUrl, name: f.name }; if(type === 'image') galleryState[currentGalleryType].images.push(item); else galleryState[currentGalleryType].videos.push(item); processed++; } catch(err) { console.error("Upload failed", err); processed++; } } if(processed > 0) { saveGalleryState(); renderGalleryContent(currentGalleryType); initGalleryGrid(); e.target.value=''; alert(`${processed} item(s) saved!`); } }
+        function renderGalleryContent(t) { const d = galleryState[t]; const ig = document.getElementById('modalImagesGrid'); const vg = document.getElementById('modalVideosGrid'); if(!ig || !vg) return; ig.innerHTML=''; vg.innerHTML=''; d.images.forEach((img)=>{ const div=document.createElement('div'); div.className='gallery-media-placeholder'; div.onclick = () => openFullView(img.url, 'image'); div.innerHTML=`<img src="${img.url}" loading="lazy" alt="Image"><span class="gallery-media-label">${img.name}</span><button class="remove-media-btn" onclick="event.stopPropagation();removeMediaById('${t}','images','${img.id}')">✕</button>`; ig.appendChild(div); }); d.videos.forEach((v)=>{ const div=document.createElement('div'); div.className='gallery-media-placeholder'; div.onclick = () => openFullView(v.url, 'video'); div.innerHTML=`<video src="${v.url}" loading="lazy" muted playsinline></video><span class="gallery-media-label">${v.name}</span><button class="remove-media-btn" onclick="event.stopPropagation();removeMediaById('${t}','videos','${v.id}')">✕</button>`; vg.appendChild(div); }); if(!d.images.length) ig.innerHTML='<p style="color:#94a3b8; grid-column: 1/-1; text-align:center; padding:1rem;">No images yet.</p>'; if(!d.videos.length) vg.innerHTML='<p style="color:#94a3b8; grid-column: 1/-1; text-align:center; padding:1rem;">No videos yet.</p>'; }
+        async function removeMediaById(t, type, mediaId) { if(!isAdmin) return alert("Admin only"); if(!confirm('Delete this media?')) return; try { await dbDelete(mediaId); } catch(e) {} galleryState[t][type] = galleryState[t][type].filter(m => m.id !== mediaId); saveGalleryState(); renderGalleryContent(t); initGalleryGrid(); }
+        function openFullView(url,type) { const m = document.getElementById('fullViewModal'); const c = document.getElementById('fullViewContainer'); if(type==='image') c.innerHTML=`<img src="${url}" alt="Full view">`; else c.innerHTML=`<video controls autoplay playsinline src="${url}"></video>`; m.classList.add('show'); }
+        function closeFullView(e) { if(e.target.id==='fullViewModal'||e.target.classList.contains('full-view-close')) { document.getElementById('fullViewModal').classList.remove('show'); document.getElementById('fullViewContainer').innerHTML=''; } }
+
+        function loadUpdatesState() { try { const stored = storage.get('lisam_updates_data'); updatesState = stored ? JSON.parse(stored) : []; } catch(e) {} if(!updatesState.length) { updatesState = [{ id:1, date:'2024-03-15', title:'Welcome New Students', content:'Orientation next Friday at 3 PM.', pdf:null, pdfName:null, pdfId:null }]; saveUpdatesState(); } }
+        function saveUpdatesState() { storage.set('lisam_updates_data', JSON.stringify(updatesState)); }
+        async function loadUpdatePDFs() { for(const u of updatesState) { if(u.pdfId && db) { const pdfData = await dbGet(u.pdfId); if(pdfData) u.pdf = pdfData; } } }
+        async function renderUpdates() { await loadUpdatePDFs(); const c = document.getElementById('updatesContainer'); if(!c) return; c.innerHTML = ''; updatesState.sort((a,b)=>new Date(b.date)-new Date(a.date)); updatesState.forEach((u,idx) => { let pdfH = ''; if(u.pdfName && u.pdf) pdfH = `<a href="${u.pdf}" download="${u.pdfName}" class="update-pdf-link" onclick="event.stopPropagation()">⬇️ ${u.pdfName}</a>`; const div = document.createElement('div'); div.className='update-item'; div.innerHTML=`<div class="update-date">📅 ${u.date}</div><div class="update-title">${u.title}</div><div class="update-content">${u.content}</div>${pdfH}<div class="update-admin-controls"><button class="update-admin-btn" onclick="editUpdate(${idx})" title="Edit">✏️</button><button class="update-admin-btn" onclick="deleteUpdate(${idx})" title="Delete">🗑️</button></div>`; c.appendChild(div); }); }
+        function openUpdatesManager() { if(!isAdmin) return alert("Admin required"); document.getElementById('adminUpdatesModal').classList.add('show'); document.getElementById('editUpdateIndex').value='-1'; document.getElementById('updateTitleInput').value=''; document.getElementById('updateContentInput').value=''; document.getElementById('updatePdfInput').value=''; document.getElementById('updateDateInput').value=new Date().toISOString().split('T')[0]; document.getElementById('removePdfCheck').classList.remove('show'); document.getElementById('removePdfCheckbox').checked = false; renderAdminUpdateList(); }
+        function closeUpdatesManager() { document.getElementById('adminUpdatesModal').classList.remove('show'); }
+        function editUpdate(idx) { document.getElementById('editUpdateIndex').value=idx; const u=updatesState[idx]; document.getElementById('updateDateInput').value=u.date; document.getElementById('updateTitleInput').value=u.title; document.getElementById('updateContentInput').value=u.content; document.getElementById('updatePdfInput').value=''; if(u.pdfName) { document.getElementById('removePdfCheck').classList.add('show'); document.getElementById('removePdfCheckbox').checked = false; } else { document.getElementById('removePdfCheck').classList.remove('show'); document.getElementById('removePdfCheckbox').checked = false; } document.getElementById('adminUpdatesModal').classList.add('show'); }
+        async function saveUpdate() { const date = document.getElementById('updateDateInput').value; const title = document.getElementById('updateTitleInput').value; const content = document.getElementById('updateContentInput').value; const pdfInput = document.getElementById('updatePdfInput'); const removePdf = document.getElementById('removePdfCheckbox').checked; const idx = parseInt(document.getElementById('editUpdateIndex').value); if(!title) return alert('Title required'); const save = async (pdfData, pdfName, pdfId) => { let u; if(idx>=0) { u = {...updatesState[idx]}; u.date = date; u.title = title; u.content = content; if(removePdf) { u.pdf = null; u.pdfName = null; u.pdfId = null; if(updatesState[idx].pdfId && db) { try { await dbDelete(updatesState[idx].pdfId); } catch(e) {} } } else if(pdfData) { u.pdf = pdfData; u.pdfName = pdfName; u.pdfId = pdfId; } } else { u = { id: Date.now(), date, title, content, pdf:pdfData, pdfName:pdfName, pdfId:pdfId || null }; } if(idx>=0) updatesState[idx]=u; else updatesState.push(u); saveUpdatesState(); await renderUpdates(); closeUpdatesManager(); }; if(pdfInput && pdfInput.files && pdfInput.files.length > 0) { try { if(pdfInput.files[0].size > 50000000) { alert('PDF too large (>50MB)'); return; } const data = await readFileAsDataURL(pdfInput.files[0]); const pdfId = `pdf_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`; if(db) await dbPut(pdfId, data); save(data, pdfInput.files[0].name, pdfId); } catch(e) { alert('Failed to save PDF'); } } else { let existingPdf = null, existingPdfName = null, existingPdfId = null; if(idx >= 0) { existingPdf = updatesState[idx].pdf; existingPdfName = updatesState[idx].pdfName; existingPdfId = updatesState[idx].pdfId; if(removePdf) { existingPdf = null; existingPdfName = null; existingPdfId = null; if(updatesState[idx].pdfId && db) { try { await dbDelete(updatesState[idx].pdfId); } catch(e) {} } } } save(existingPdf, existingPdfName, existingPdfId); } }
+        async function deleteUpdate(idx) { if(!confirm('Delete this update?')) return; if(updatesState[idx].pdfId && db) { try { await dbDelete(updatesState[idx].pdfId); } catch(e) {} } updatesState.splice(idx,1); saveUpdatesState(); renderUpdates(); }
+        function renderAdminUpdateList() { const l = document.getElementById('adminUpdateList'); l.innerHTML=''; updatesState.forEach((u,i)=>{ const d=document.createElement('div'); d.style.cssText='padding:5px 5px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; font-size:0.8rem; align-items:center;'; d.innerHTML=`<span style="font-weight:600;">${u.title}</span> <span style="color:var(--text-muted); font-size:0.7rem;">${u.date}</span> <button onclick="editUpdate(${i});" style="cursor:pointer; color:var(--green); background:none; border:none; font-weight:600;">Edit</button>`; l.appendChild(d); }); }
+    </script>
+</body>
+</html>
+
